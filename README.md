@@ -25,10 +25,8 @@ El proyecto permite:
 
 ## 🧪 Tecnologías Utilizadas
 
-El desarrollo de OmegaDent se basa en un stack moderno y eficiente que incluye:
-
-| Tecnología     | Descripción                                         |
-|----------------|-----------------------------------------------------|
+| Tecnología       | Descripción                                         |
+|------------------|-----------------------------------------------------|
 | **React Native** | Desarrollo de la aplicación móvil (Android/iOS)    |
 | **React**        | Interfaz web interactiva y responsiva              |
 | **Express**      | API RESTful para la comunicación cliente-servidor |
@@ -37,4 +35,12 @@ El desarrollo de OmegaDent se basa en un stack moderno y eficiente que incluye:
 
 ---
 
+## ⚙️ Configuración Inicial del Proyecto React
 
+### 1. 📁 Inicializar el proyecto
+
+Dirigirse a la carpeta correspondiente de frontend que se necesita ejecutar
+
+Posteriormente, instalar todas las dependencias mediante el comando `npm i` o `npm install`
+
+Asegurandose de estar en la carpeta necesaria, se ejecuta el comando `npm run dev` para correr la aplicación de React 
