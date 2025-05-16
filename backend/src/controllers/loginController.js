@@ -10,9 +10,9 @@ const loginController = {};
 
 /**
  * Control de autenticación para doctores, pacientes, asistentes y administradores
- * @param {Object} req - Objeto de solicitud Express
- * @param {Object} res - Objeto de respuesta Express
- * @returns {Object} - Respuesta JSON con mensaje y token JWT en caso de éxito
+ * Objeto de solicitud Express
+ * Objeto de respuesta Express
+ * Respuesta JSON con mensaje y token JWT en caso de éxito
  */
 loginController.login = async (req, res) => {
   const { email, password } = req.body;
@@ -54,6 +54,14 @@ loginController.login = async (req, res) => {
           // Si no es un asistente, buscar en la colección de pacientes
           userFound = await patientsModel.findOne({ email });
           if (userFound) {
+            // Verificar si el paciente ha verificado su cuenta
+            if (!userFound.isVerified) {
+              return res.status(401).json({ 
+                message: "Cuenta no verificada. Por favor, verifica tu correo electrónico",
+                needsVerification: true
+              });
+            }
+            
             userType = "paciente";
             // Comparar las contraseñas
             const isMatch = await bcrypt.compare(password, userFound.password);

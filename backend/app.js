@@ -10,6 +10,8 @@ import adminsRoutes from "./src/routes/admins.js";
 import assistantsRoutes from "./src/routes/assistants.js";
 import loginRoutes from "./src/routes/login.js";
 import logoutRoutes from "./src/routes/logout.js";
+import registerPatientsRoutes from "./src/routes/registerPatients.js";
+import registerDoctorsRoutes from "./src/routes/registerDoctors.js";
 
 //Creso la constante para poder usar express en otros archivos
 const app = express();
@@ -41,6 +43,8 @@ app.use("/api/assistants", assistantsRoutes);
 // Rutas publicas que no necesitan haber iniciado sesión
 app.use("/api/login", loginRoutes);
 app.use("/api/logout", logoutRoutes);
+app.use("/api/register/patients", registerPatientsRoutes);
+app.use("/api/register/doctors", registerDoctorsRoutes);
 
 // Ruta de inicio para verificar que el servidor funciona
 
