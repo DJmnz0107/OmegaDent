@@ -4,11 +4,12 @@ import { Schema, model } from "mongoose";
 Campos del modelo Doctors:
 - name: Nombre del doctor (String, requerido)
 - lastName: Apellido del doctor (String, requerido)
+- email: Correo electrónico del doctor (String, requerido, único)
+- password: Contraseña del doctor (String, requerido)
 - dui: Documento Único de Identidad (String)
 - birthDate: Fecha de nacimiento (Date)
 - specialty: Especialidad médica (String)
 - phoneNumber: Número de teléfono (String)
-- userId: ID del usuario asociado para autenticación (ObjectId, ref: "User")
 */
 
 const doctorsSchema = new Schema(
@@ -18,6 +19,17 @@ const doctorsSchema = new Schema(
             required: true,
         },
         lastName: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+        },
+        password: {
             type: String,
             required: true,
         },
@@ -32,10 +44,6 @@ const doctorsSchema = new Schema(
         },
         phoneNumber: {
             type: String,
-        },
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "users",
         },
     },
     {

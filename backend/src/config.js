@@ -15,7 +15,7 @@ export const config = {
     EXPIRES: process.env.JWT_EXPIRES,
   },
   email: {
-    EMAIL: "20210240@ricaldone.edu.sv",
+    EMAIL: "OmegaDent2025@gmail.com",
     PASSWORD: process.env.APP_PASSWORD_EMAIL,
   },
   admin: {
