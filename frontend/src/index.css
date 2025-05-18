@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Estilos personalizados para OmegaDent */
+:root {
+  --primary: #0EB19B; /* Verde turquesa */
+  --secondary: #0E6B96; /* Azul */
+  --dark: #2D4A56; /* Color oscuro */
+  --light-blue: #ABDFE1; /* Azul claro */
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
