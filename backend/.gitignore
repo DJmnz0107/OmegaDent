@@ -1,0 +1,12 @@
+# Archivos de configuración
+.env
+
+# Archivos de node_modules
+node_modules
+
+# Archivos de logs
+logs
+
+# Archivos de depedencias
+dependency-lock.json
+package-lock.json
