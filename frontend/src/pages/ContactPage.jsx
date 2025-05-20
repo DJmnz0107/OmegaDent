@@ -71,7 +71,7 @@ const ContactPage = () => {
       <Header />
       
       {/* Sección Hero */}
-      <section className="bg-gradient-to-r from-[#E6F3F9] to-[#E6F9F6] h-screen max-h-[600px] flex items-center">
+      <section className="bg-gradient-to-r from-[#E6F3F9] to-[#E6F9F6] h-screen max-h-[600px] flex items-center pt-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex flex-col md:flex-row items-center">
             {/* Columna de texto */}

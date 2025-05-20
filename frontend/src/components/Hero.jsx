@@ -1,7 +1,7 @@
 // Componente Hero para la sección principal con imagen destacada
 const Hero = () => {
   return (
-    <section className="pt-32 pb-20 bg-white border-b border-gray-100" id="inicio">
+    <section className="pt-36 pb-20 bg-white border-b border-gray-100" id="inicio">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="w-full md:w-1/2 mb-8 md:mb-0 md:pr-8 max-w-lg">
