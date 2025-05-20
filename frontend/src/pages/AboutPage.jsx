@@ -112,58 +112,59 @@ const AboutPage = () => {
             </div>
           </div>
           
-          {/* Sección de la clínica */}
-          <div className="mt-24 py-16 bg-[#0E6B96] text-white rounded-lg">
-            <div className="container mx-auto px-4 max-w-6xl">
-              <div className="flex flex-col md:flex-row items-center justify-between">
-                {/* Logo */}
-                <div className="w-full md:w-1/3 text-center md:text-left mb-8 md:mb-0">
-                  <img 
-                    src="/images/logo-dra-cindy-padilla.svg" 
-                    alt="Logo Dra. Cindy Padilla" 
-                    className="h-48 inline-block"
-                  />
-                </div>
-                
-                {/* Información */}
-                <div className="w-full md:w-2/3 md:pl-12">
-                  <h2 className="text-3xl font-bold mb-4">
-                    Clínica Dra. Cindy Padilla
-                  </h2>
-                  <p className="mb-8">
-                    Nuestra clínica dental está equipada con la más moderna tecnología y 
-                    cuenta con profesionales altamente capacitados para brindar el mejor 
-                    servicio a nuestros pacientes.
-                  </p>
-                  
-                  <ul className="space-y-4">
-                    <li className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </div>
-                      Tecnología de última generación
-                    </li>
-                    <li className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </div>
-                      Profesionales certificados
-                    </li>
-                    <li className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </div>
-                      Atención personalizada
-                    </li>
-                  </ul>
-                </div>
-              </div>
+        </div>
+      </section>
+      
+      {/* Sección de la clínica - Ahora fuera del contenedor principal para ocupar todo el ancho */}
+      <section className="bg-[#0E6B96] text-white w-full py-28 min-h-[600px]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between">
+            {/* Logo */}
+            <div className="w-full md:w-1/3 text-center md:text-left mb-8 md:mb-0">
+              <img 
+                src="/images/logo-dra-cindy-padilla.svg" 
+                alt="Logo Dra. Cindy Padilla" 
+                className="h-48 md:h-76 inline-block"
+              />
+            </div>
+            
+            {/* Información */}
+            <div className="w-full md:w-2/3 md:pl-12">
+              <h2 className="text-3xl font-bold mb-4">
+                Clínica Dra. Cindy Padilla
+              </h2>
+              <p className="mb-8 text-[#E6F9F6] text-sm md:text-base">
+                Nuestra clínica dental está equipada con la más moderna tecnología y 
+                cuenta con profesionales altamente capacitados para brindar el mejor 
+                servicio a nuestros pacientes.
+              </p>
+              
+              <ul className="space-y-4">
+                <li className="flex items-center">
+                  <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Tecnología de última generación</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Profesionales certificados</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-6 h-6 rounded-full bg-[#0EB19B] flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Atención personalizada</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
