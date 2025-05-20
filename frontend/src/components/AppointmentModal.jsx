@@ -60,6 +60,18 @@ const AppointmentModal = ({ isOpen, onClose }) => {
             Crear cuenta
           </Link>
         </div>
+        
+        {/* Botón temporal para desarrollo - lleva directamente a la pantalla de citas */}
+        <div className="mt-4 text-center">
+          <p className="text-gray-500 text-sm mb-2">Acceso temporal para desarrollo:</p>
+          <Link 
+            to="/appointment" 
+            className="bg-green-500 text-white font-medium py-2 px-8 rounded-lg hover:bg-green-600 transition duration-300 inline-block"
+            onClick={onClose}
+          >
+            Ver página de citas →
+          </Link>
+        </div>
       </div>
     </div>
   );

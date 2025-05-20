@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage'
 import RecoveryPage from './pages/RecoveryPage'
 import CodeVerificationPage from './pages/CodeVerificationPage'
 import NewPasswordPage from './pages/NewPasswordPage'
+import AppointmentPage from './pages/AppointmentPage'
 
 function App() {
   // La función principal del componente App
@@ -63,6 +64,9 @@ function App() {
         <Route path="/recovery" element={<RecoveryPage />} />
         <Route path="/verify-code" element={<CodeVerificationPage />} />
         <Route path="/new-password" element={<NewPasswordPage />} />
+        
+        {/* Ruta para la página de citas */}
+        <Route path="/appointment" element={<AppointmentPage />} />
       </Routes>
     </Router>
   )
