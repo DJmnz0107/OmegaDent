@@ -24,13 +24,12 @@ app.use(express.json());
 app.use(cookieParser());
 //Configuración de CORS para permitir solicitudes desde el frontend
 
-app.use(cors({
-  origin: "*", // Permite todas las peticiones en desarrollo
-  // Para producción, sería algo como:
-  // origin: ['http://tu-frontend.com', 'http://localhost:5500'],
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true // Habilitar para permitir cookies en autenticación cross-origin
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Dominio del cliente
+    credentials: true, // Permitir envío de cookies y credenciales
+  })
+);
 
 //Mandae a llamar a rutas
 app.use("/api/doctors", doctorsRoutes);

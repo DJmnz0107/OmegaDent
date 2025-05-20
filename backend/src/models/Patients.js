@@ -76,6 +76,13 @@ const patientsSchema = new Schema(
         },
         dui: {
             type: String,
+            validate: {
+                validator: function(v) {
+                    // Validar formato 00000000-0
+                    return v ? /^\d{8}-\d{1}$/.test(v) : true;
+                },
+                message: props => "El DUI debe tener el formato 00000000-0"
+            }
         },
         recordNumber: {
             type: String,

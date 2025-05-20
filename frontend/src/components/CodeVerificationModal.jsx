@@ -1,19 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
-// Modal para verificación de código enviado al correo electrónico - basado exactamente en la imagen 3
+// Modal para verificación de código enviado al correo electrónico
 const CodeVerificationModal = ({ onVerify, onClose }) => {
+  // Estado para manejar la carga
+  const [loading, setLoading] = useState(false);
   // Crear referencias individuales para cada campo de entrada
   const inputRef0 = useRef(null);
   const inputRef1 = useRef(null);
   const inputRef2 = useRef(null);
   const inputRef3 = useRef(null);
   const inputRef4 = useRef(null);
+  const inputRef5 = useRef(null);
   
   // Array estático de referencias para fácil acceso
-  const inputRefs = [inputRef0, inputRef1, inputRef2, inputRef3, inputRef4];
+  const inputRefs = [inputRef0, inputRef1, inputRef2, inputRef3, inputRef4, inputRef5];
 
-  // Estado para almacenar el código de 5 dígitos
-  const [code, setCode] = useState(['', '', '', '', '']);
+  // Estado para almacenar el código de 6 dígitos
+  const [code, setCode] = useState(['', '', '', '', '', '']);
 
   // Enfocar el primer input cuando se muestra el modal
   useEffect(() => {
@@ -30,7 +34,7 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
     setCode(newCode);
 
     // Si el valor no está vacío y no es el último input, mover el foco al siguiente input
-    if (value !== '' && index < 4) {
+    if (value !== '' && index < 5) {
       inputRefs[index + 1].current.focus();
     }
 
@@ -49,21 +53,30 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
   };
 
   // Manejar clic en el botón "Verificar código"
-  const handleVerifyClick = () => {
+  const handleVerifyClick = async () => {
     // Verificar que todos los campos estén llenos
     if (code.some(digit => digit === '')) {
-      alert('Por favor, complete todos los dígitos del código.');
+      toast.error('Por favor, complete todos los dígitos del código.');
       return;
     }
 
-    // Llamar a la función de verificación proporcionada por el componente padre
-    onVerify(code.join(''));
+    try {
+      setLoading(true);
+      // Llamar a la función de verificación proporcionada por el componente padre
+      await onVerify(code.join(''));
+    } catch (error) {
+      console.error('Error al verificar código:', error);
+      // Los errores ya se manejan en el componente padre
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Manejar clic en "Reenviar código"
   const handleResendCode = () => {
     // Aquí iría la lógica para reenviar el código
-    alert('Se ha enviado un nuevo código a su correo electrónico.');
+    // Esta funcionalidad requiere implementación en el backend
+    toast.info('Se ha enviado un nuevo código a su correo electrónico.');
   };
 
   // Detener la propagación de clics dentro del modal
@@ -97,7 +110,7 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
         
         {/* Instrucciones - exactamente como en la imagen 3 */}
         <p className="text-center text-gray-600 text-sm mb-6">
-          Ingresa el código de 5 dígitos enviado a tu correo electrónico
+          Ingresa el código de 6 dígitos enviado a tu correo electrónico
         </p>
         
         {/* Campos de entrada para el código - pixel perfect como en la imagen 3 */}
@@ -121,8 +134,9 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
           type="button"
           className="w-full bg-[#0A3A4A] text-white py-3 px-4 rounded-lg hover:bg-[#0E6B96] transition duration-300 mb-4 font-medium"
           onClick={handleVerifyClick}
+          disabled={loading}
         >
-          Verificar código
+          {loading ? "Verificando..." : "Verificar código"}
         </button>
         
         {/* Enlace para reenviar código - exactamente como en la imagen 3 */}
