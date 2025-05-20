@@ -87,63 +87,92 @@ appointmentsController.createAppointment = async (req, res) => {
         const { 
             appointment_date, 
             appointment_time, 
-            patient_id, 
-            service_id, 
+            patient_id,  
+            problem_description,
+            // Estos campos se podrán asignar después por un administrador
+            service_id,
+            doctor_id,
             appointment_confirmation, 
-            problem_description, 
-            appointment_status, 
-            doctor_id 
+            appointment_status
         } = req.body;
 
-        // Validaciones de existencia de las entidades relacionadas
+        // Validación de campos requeridos
+        if (!appointment_date || !appointment_time || !patient_id) {
+            return res.status(400).json({ 
+                message: "La fecha, hora y paciente son campos obligatorios" 
+            });
+        }
+
+        // Validamos que el paciente existe
         const patientExists = await patientsModel.exists({ _id: patient_id });
         if (!patientExists) {
             return res.status(400).json({ message: "El paciente especificado no existe" });
         }
 
-        const doctorExists = await doctorsModel.exists({ _id: doctor_id });
-        if (!doctorExists) {
-            return res.status(400).json({ message: "El doctor especificado no existe" });
+        // Validamos doctor_id y service_id solo si se proporcionan
+        if (doctor_id) {
+            const doctorExists = await doctorsModel.exists({ _id: doctor_id });
+            if (!doctorExists) {
+                return res.status(400).json({ message: "El doctor especificado no existe" });
+            }
         }
 
-        const serviceExists = await servicesModel.exists({ _id: service_id });
-        if (!serviceExists) {
-            return res.status(400).json({ message: "El servicio especificado no existe" });
+        if (service_id) {
+            const serviceExists = await servicesModel.exists({ _id: service_id });
+            if (!serviceExists) {
+                return res.status(400).json({ message: "El servicio especificado no existe" });
+            }
         }
 
-        // Verifica si ya existe una cita para ese doctor en la misma fecha y hora
-        const existingAppointment = await appointmentsModel.findOne({
-            doctor_id,
-            appointment_date,
-            appointment_time,
-            appointment_status: { $ne: "cancelada" } // No considerar citas canceladas
-        });
-
-        if (existingAppointment) {
-            return res.status(400).json({ 
-                message: "El doctor ya tiene una cita agendada para esa fecha y hora" 
+        // Verifica si ya existe una cita para ese doctor en la misma fecha y hora, solo si se proporciona un doctor_id
+        if (doctor_id) {
+            const existingAppointment = await appointmentsModel.findOne({
+                doctor_id,
+                appointment_date,
+                appointment_time,
+                appointment_status: { $ne: "cancelada" } // No considerar citas canceladas
             });
+
+            if (existingAppointment) {
+                return res.status(400).json({ 
+                    message: "El doctor ya tiene una cita agendada para esa fecha y hora" 
+                });
+            }
         }
 
-        // Crea la nueva cita
-        const newAppointment = new appointmentsModel({ 
+        // Crea la nueva cita con solo los campos necesarios
+        const appointmentData = { 
             appointment_date, 
             appointment_time, 
-            patient_id, 
-            service_id, 
-            appointment_confirmation: appointment_confirmation || false, 
-            problem_description, 
-            appointment_status: appointment_status || "pendiente", 
-            doctor_id 
-        });
+            patient_id,
+            problem_description,
+            appointment_status: appointment_status || "pendiente",
+            appointment_confirmation: appointment_confirmation || false
+        };
+        
+        // Añade campos opcionales solo si tienen valor
+        if (doctor_id) appointmentData.doctor_id = doctor_id;
+        if (service_id) appointmentData.service_id = service_id;
+        
+        const newAppointment = new appointmentsModel(appointmentData);
         
         await newAppointment.save();
         
         // Obtiene los datos relacionados para devolverlos en la respuesta
-        const populatedAppointment = await appointmentsModel.findById(newAppointment._id)
-            .populate('patient_id', 'name lastname')
-            .populate('doctor_id', 'name lastName')
-            .populate('service_id', 'name');
+        // Usar una consulta que solo haga populate de los campos existentes
+        let query = appointmentsModel.findById(newAppointment._id)
+            .populate('patient_id', 'name lastname');
+            
+        // Solo hacemos populate de doctor_id y service_id si existen
+        if (doctor_id) {
+            query = query.populate('doctor_id', 'name lastName');
+        }
+        
+        if (service_id) {
+            query = query.populate('service_id', 'name');
+        }
+        
+        const populatedAppointment = await query;
         
         return res.status(201).json({ 
             message: "Cita creada con éxito",

@@ -1,10 +1,12 @@
 // Componente Header con navegación para la landing page
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import AppointmentModal from './AppointmentModal';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeItem, setActiveItem] = useState('inicio');
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la apertura del modal
   const location = useLocation();
 
   // Detectar la sección actual basada en el scroll
@@ -41,6 +43,15 @@ const Header = () => {
   const handleItemClick = (item) => {
     setActiveItem(item);
     setIsMenuOpen(false);
+  };
+  
+  // Abrir modal de agendar cita
+  const handleAppointmentClick = (e) => {
+    e.preventDefault(); // Prevenir la navegación predeterminada
+    setIsModalOpen(true); // Abrir el modal
+    if (isMenuOpen) {
+      setIsMenuOpen(false); // Cerrar el menú móvil si está abierto
+    }
   };
 
   return (
@@ -93,31 +104,34 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                <a 
-                  href="#contacto" 
-                  className={`text-gray-700 hover:text-[#0EB19B] relative py-6 ${activeItem === 'contacto' ? 'text-[#0EB19B] after:content-[\'\'] after:bg-[#0EB19B] after:h-0.5 after:w-full after:absolute after:left-0 after:bottom-0' : ''}`}
-                  onClick={() => handleItemClick('contacto')}
+                <Link 
+                  to="/contacto" 
+                  className={`text-gray-700 hover:text-[#0EB19B] relative py-6 ${location.pathname === '/contacto' ? 'text-[#0EB19B] after:content-[\'\'] after:bg-[#0EB19B] after:h-0.5 after:w-full after:absolute after:left-0 after:bottom-0' : ''}`}
                 >
                   Contacto
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
 
-          {/* Botones de acción - Versión desktop */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Botón "Iniciar Sesión" y "Agendar Cita" */}
+          <div className="hidden md:flex items-center ml-6 space-x-4">
             <Link to="/login" className="text-gray-600 flex items-center hover:text-[#0EB19B]">
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
               </svg>
               Iniciar Sesión
             </Link>
-            <Link to="/agendar" className="bg-[#0EB19B] text-white py-2 px-4 rounded-full flex items-center hover:bg-[#0c9d8a] transition-colors whitespace-nowrap">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <a 
+              href="#" 
+              onClick={handleAppointmentClick}
+              className="bg-[#0EB19B] text-white py-2 px-4 rounded-full flex items-center hover:bg-[#0c9d8a] transition-colors whitespace-nowrap"
+            >
+              <svg className="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
               Agendar Cita
-            </Link>
+            </a>
           </div>
           
           {/* Menú hamburguesa - Versión móvil */}
@@ -174,13 +188,13 @@ const Header = () => {
             >
               Servicios
             </Link>
-            <a 
-              href="#contacto" 
-              className={`text-gray-700 hover:text-[#0EB19B] ${activeItem === 'contacto' ? 'text-[#0EB19B]' : ''}`}
-              onClick={() => handleItemClick('contacto')}
+            <Link 
+              to="/contacto" 
+              className={`text-gray-700 hover:text-[#0EB19B] ${location.pathname === '/contacto' ? 'text-[#0EB19B]' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
             >
               Contacto
-            </a>
+            </Link>
             <div className="flex flex-col space-y-2 mt-2 border-t pt-2">
               <Link to="/login" className="text-gray-600 flex items-center py-1" onClick={() => setIsMenuOpen(false)}>
                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -188,16 +202,26 @@ const Header = () => {
                 </svg>
                 Iniciar Sesión
               </Link>
-              <Link to="/agendar" className="bg-[#0EB19B] text-white py-2 px-4 rounded-full flex items-center hover:bg-[#0c9d8a] transition-colors whitespace-nowrap" onClick={() => setIsMenuOpen(false)}>
+              <a 
+                href="#" 
+                className="bg-[#0EB19B] text-white py-2 px-4 rounded-full flex items-center hover:bg-[#0c9d8a] transition-colors whitespace-nowrap"
+                onClick={handleAppointmentClick}
+              >
                 <svg className="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 Agendar Cita
-              </Link>
+              </a>
             </div>
           </div>
         )}
       </div>
+      
+      {/* Modal de agendar cita */}
+      <AppointmentModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </header>
   );
 };

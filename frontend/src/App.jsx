@@ -11,6 +11,12 @@ import Footer from './components/Footer'
 // Importamos las páginas
 import ServicesPage from './pages/ServicesPage'
 import AboutPage from './pages/AboutPage'
+import ContactPage from './pages/ContactPage'
+import SignupPage from './pages/SignupPage'
+import LoginPage from './pages/LoginPage'
+import RecoveryPage from './pages/RecoveryPage'
+import CodeVerificationPage from './pages/CodeVerificationPage'
+import NewPasswordPage from './pages/NewPasswordPage'
 
 function App() {
   // La función principal del componente App
@@ -43,6 +49,20 @@ function App() {
         
         {/* Ruta para la página de sobre nosotros */}
         <Route path="/sobre-nosotros" element={<AboutPage />} />
+        
+        {/* Ruta para la página de contacto */}
+        <Route path="/contacto" element={<ContactPage />} />
+        
+        {/* Ruta para la página de registro */}
+        <Route path="/signup" element={<SignupPage />} />
+        
+        {/* Ruta para la página de inicio de sesión */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Rutas para el flujo de recuperación de contraseña */}
+        <Route path="/recovery" element={<RecoveryPage />} />
+        <Route path="/verify-code" element={<CodeVerificationPage />} />
+        <Route path="/new-password" element={<NewPasswordPage />} />
       </Routes>
     </Router>
   )

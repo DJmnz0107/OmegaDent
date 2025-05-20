@@ -30,7 +30,7 @@ const appointmentsSchema = new Schema(
         service_id: {
             type: Schema.Types.ObjectId,
             ref: "services",
-            required: true,
+            // No requerido inicialmente, será asignado por un administrador
         },
         appointment_confirmation: {
             type: Boolean,
@@ -47,7 +47,7 @@ const appointmentsSchema = new Schema(
         doctor_id: {
             type: Schema.Types.ObjectId,
             ref: "doctors",
-            required: true,
+            // No requerido inicialmente, será asignado por un administrador
         }
     },
     {

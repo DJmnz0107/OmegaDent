@@ -79,8 +79,8 @@ const patientsSchema = new Schema(
         },
         recordNumber: {
             type: String,
-            required: true,
             unique: true,
+            // Será asignado por el sistema después del registro
         },
         gender: {
             type: String,
@@ -89,7 +89,7 @@ const patientsSchema = new Schema(
         occupation: {
             type: String,
         },
-        emergencyContact: {
+        emergencyContact: {   // no es obligatorio
             firstName: {
                 type: String,
             },
