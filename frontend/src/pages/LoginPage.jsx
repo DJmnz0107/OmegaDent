@@ -1,66 +1,96 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../contexts/AuthContext'; // Importamos el hook del contexto
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
-
+  // Estado para mostrar/ocultar la contraseña
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
-  };
+  
+  // Utilizamos nuestro hook personalizado de autenticación
+  const { login, loading } = useAuth();
+  
+  // Inicializar react-hook-form con las validaciones requeridas
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors } 
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false
+    },
+    mode: 'onBlur' // Validar cuando el campo pierde el foco
+  });
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Aquí implementaremos la lógica de inicio de sesión
-    console.log('Datos de inicio de sesión:', formData);
-    // Añadir validaciones y envío al backend
+  // Función para manejar el envío del formulario con react-hook-form
+  const onSubmit = async (data) => {
+    try {
+      // Usamos la función login del hook personalizado
+      await login({
+        email: data.email,
+        password: data.password
+      }, data.rememberMe);
+      
+      // El hook useAuth se encarga de mostrar las notificaciones y redireccionar
+    } catch (err) {
+      // Los errores ya son manejados por el hook useAuth
+      console.error('Error en el formulario de login:', err);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A3E59] to-[#19CEB3]">
+      {/* Contenedor de notificaciones Toast */}
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick />  
+      
       <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md">
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold text-gray-800">Iniciar sesión con la cuenta de OMEGA</h2>
           <p className="text-gray-600 mt-2">¡Bienvenido de nuevo!</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Formulario con react-hook-form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Campo de correo electrónico */}
           <div>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96] ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
               placeholder="Correo Electrónico"
-              required
+              {...register('email', { 
+                required: 'El correo electrónico es obligatorio', 
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Formato de correo electrónico inválido'
+                }
+              })}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
           </div>
 
           {/* Campo de contraseña con opción mostrar/ocultar */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96] ${errors.password ? 'border-red-500' : 'border-gray-200'}`}
               placeholder="Contraseña"
-              required
+              {...register('password', { 
+                required: 'La contraseña es obligatoria',
+                minLength: {
+                  value: 6,
+                  message: 'La contraseña debe tener al menos 6 caracteres'
+                }
+              })}
             />
             <button
               type="button"
@@ -78,6 +108,9 @@ const LoginPage = () => {
                 </svg>
               )}
             </button>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
           </div>
 
           {/* Casilla de recordar sesión */}
@@ -85,10 +118,8 @@ const LoginPage = () => {
             <input
               type="checkbox"
               id="rememberMe"
-              name="rememberMe"
-              checked={formData.rememberMe}
-              onChange={handleChange}
               className="h-4 w-4 text-[#0E6B96] focus:ring-[#0E6B96] border-gray-300 rounded"
+              {...register('rememberMe')}
             />
             <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-800">
               Mantener sesión iniciada
@@ -98,9 +129,10 @@ const LoginPage = () => {
           {/* Botón de ingreso */}
           <button
             type="submit"
-            className="w-full bg-[#0A3A4A] text-white py-3 px-4 rounded-lg hover:bg-[#0E6B96] transition duration-300 font-medium"
+            disabled={loading}
+            className={`w-full text-white py-3 px-4 rounded-lg transition duration-300 font-medium ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0A3A4A] hover:bg-[#0E6B96]'}`}
           >
-            Ingresar
+            {loading ? 'Iniciando sesión...' : 'Ingresar'}
           </button>
 
           {/* Enlace para registrarse */}

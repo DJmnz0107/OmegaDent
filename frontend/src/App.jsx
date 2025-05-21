@@ -1,5 +1,8 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { AuthProvider } from './contexts/AuthContext'
 
 // Importamos los componentes que vamos a crear
 import Header from './components/Header'
@@ -24,7 +27,12 @@ function App() {
 
   return (
     <Router>
-      <Routes>
+      {/* Proveedor de autenticación que envuelve toda la aplicación */}
+      <AuthProvider>
+        {/* Contenedor de notificaciones Toast global */}
+        <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick />
+        
+        <Routes>
         {/* Ruta principal - Landing Page */}
         <Route path="/" element={
           <>
@@ -68,6 +76,7 @@ function App() {
         {/* Ruta para la página de citas */}
         <Route path="/appointment" element={<AppointmentPage />} />
       </Routes>
+      </AuthProvider>
     </Router>
   )
 }
