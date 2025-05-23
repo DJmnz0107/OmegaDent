@@ -1,9 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import usePatientRegistration from '../hooks/usePatientRegistration';
 
 const CodeVerificationPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentStep] = useState(2);
+  
+  // Obtener el token de verificación de la URL o state
+  const token = new URLSearchParams(location.search).get('token') || 
+               (location.state && location.state.verificationToken);
+  
+  // Usar el hook de registro de pacientes
+  const { verifyCode, loading, error, success, resetStates } = usePatientRegistration();
+  
+  // Al montar el componente, verificar si tenemos el token necesario
+  useEffect(() => {
+    const storedToken = localStorage.getItem('omegadent_verification_token');
+    if (!token && !storedToken) {
+      toast.error('No se encontró un token de verificación válido');
+      setTimeout(() => {
+        navigate('/signup', { replace: true });
+      }, 2000);
+    }
+    
+    // Limpiar al desmontar el componente
+    return () => {
+      resetStates();
+    };
+  }, [token, navigate, resetStates]);
   
   // Referencias para los 5 campos de entrada
   const inputRef0 = useRef(null);
@@ -50,58 +76,117 @@ const CodeVerificationPage = () => {
   };
 
   // Manejar clic en el botón "Verificar código"
-  const handleVerifyClick = () => {
+  const handleVerifyClick = async (e) => {
+    e.preventDefault();
+    
     // Verificar que todos los campos estén llenos
     if (code.some(digit => digit === '')) {
-      alert('Por favor, complete todos los dígitos del código.');
+      toast.error('Por favor, complete todos los dígitos del código.');
       return;
     }
 
-    // Aquí se verificaría el código con el backend
-    console.log('Código a verificar:', code.join(''));
-    
-    // Navegar a la página de cambio de contraseña
-    navigate('/new-password');
+    try {
+      console.log('Código a verificar:', code.join(''));
+      
+      // Verificar el código con el backend usando el token (o el almacenado en localStorage)
+      const storedToken = localStorage.getItem('omegadent_verification_token');
+      const tokenToUse = token || storedToken;
+      
+      console.log('Verificando código con token:', tokenToUse);
+      const response = await verifyCode(code.join(''), tokenToUse);
+      
+      // Verificar si la respuesta incluye un token de autenticación
+      if (response && response.token) {
+        console.log('Verificación exitosa, iniciando sesión...');
+        
+        // Mostrar mensaje de éxito
+        toast.success('¡Registro completado con éxito! Iniciando sesión...');
+        
+        // Limpiar el token de verificación ya que ya no se necesita
+        localStorage.removeItem('omegadent_verification_token');
+        
+        // Redireccionar a la página principal
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 1500);
+      } else {
+        console.error('Verificación exitosa pero no se recibió token de autenticación');
+        toast.warning('Verificación completada, pero hubo un problema al iniciar sesión automáticamente');
+        
+        // Redireccionar a la página de login
+        setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error al verificar el código:', error);
+      toast.error(error.message || 'Error al verificar el código');
+    }
   };
 
   // Manejar clic en "Reenviar código"
   const handleResendCode = () => {
     // Aquí iría la lógica para reenviar el código
     console.log('Reenviar código solicitado');
-    alert('Se ha enviado un nuevo código a tu correo electrónico');
+    toast.info('Se ha enviado un nuevo código a tu correo electrónico');
   };
+  
+  // Mostrar errores
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+    if (success) {
+      toast.success(success);
+    }
+  }, [error, success]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A3E59] to-[#19CEB3]">
-      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md">
+      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md relative">
+        {/* Botón de cerrar/volver */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
         <h2 className="text-2xl font-bold text-center mb-2">Verificación de código</h2>
         <p className="text-center text-gray-600 mb-8">
           Ingresa el código de 5 dígitos enviado a tu dispositivo
         </p>
 
-        {/* Campos para el código de 5 dígitos */}
-        <div className="flex justify-center space-x-3 mb-6">
-          {inputRefs.map((ref, index) => (
-            <input
-              key={index}
-              ref={ref}
-              type="text"
-              maxLength={1}
-              className="w-12 h-12 border border-gray-200 rounded-lg text-center text-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
-              value={code[index]}
-              onChange={(e) => handleCodeChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-            />
-          ))}
-        </div>
+        {/* Formulario de verificación de código */}
+        <form onSubmit={handleVerifyClick} className="mb-4">
+          {/* Campos para el código de 5 dígitos */}
+          <div className="flex justify-center space-x-3 mb-6">
+            {inputRefs.map((ref, index) => (
+              <input
+                key={index}
+                ref={ref}
+                type="text"
+                maxLength={1}
+                className="w-12 h-12 border border-gray-200 rounded-lg text-center text-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
+                value={code[index]}
+                onChange={(e) => handleCodeChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                required
+              />
+            ))}
+          </div>
 
-        {/* Botón de verificación */}
-        <button
-          onClick={handleVerifyClick}
-          className="w-full bg-[#0A3A4A] text-white py-3 px-4 rounded-lg hover:bg-[#0E6B96] transition duration-300 font-medium mb-4"
-        >
-          Verificar código
-        </button>
+          {/* Botón de verificación */}
+          <button
+            type="submit"
+            className="w-full bg-[#0A3A4A] text-white py-3 px-4 rounded-lg hover:bg-[#0E6B96] transition duration-300 font-medium"
+            disabled={loading}
+          >
+            {loading ? "Verificando..." : "Verificar código"}
+          </button>
+        </form>
 
         {/* Opción para reenviar el código */}
         <div className="text-center">

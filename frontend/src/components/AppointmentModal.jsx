@@ -22,6 +22,16 @@ const AppointmentModal = ({ isOpen, onClose }) => {
         className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 relative"
         onClick={handleModalContentClick}
       >
+        {/* Botón de cerrar (X) en la esquina superior derecha */}
+        <button
+          onClick={onClose}
+          className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors focus:outline-none"
+          aria-label="Cerrar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         {/* Icono de advertencia */}
         <div className="flex justify-center mb-6">
           <div className="text-[#0EB19B]">
@@ -58,18 +68,6 @@ const AppointmentModal = ({ isOpen, onClose }) => {
             onClick={onClose}
           >
             Crear cuenta
-          </Link>
-        </div>
-        
-        {/* Botón temporal para desarrollo - lleva directamente a la pantalla de citas */}
-        <div className="mt-4 text-center">
-          <p className="text-gray-500 text-sm mb-2">Acceso temporal para desarrollo:</p>
-          <Link 
-            to="/appointment" 
-            className="bg-green-500 text-white font-medium py-2 px-8 rounded-lg hover:bg-green-600 transition duration-300 inline-block"
-            onClick={onClose}
-          >
-            Ver página de citas →
           </Link>
         </div>
       </div>

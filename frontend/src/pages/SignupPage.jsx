@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import CodeVerificationModal from '../components/CodeVerificationModal';
-import SuccessModal from '../components/SuccessModal';
-import { usePatientRegistration } from '../hooks/usePatientRegistration';
+import usePatientRegistration from '../hooks/usePatientRegistration';
 
 const SignupPage = () => {
-  const navigate = useNavigate();
-  
   // Estados para manejar el formulario de registro paso a paso
   const [step, setStep] = useState(1); // 1: primer formulario, 2: segundo formulario
   const [showVerification, setShowVerification] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  
+  // El proceso de registro y autenticación se maneja a través de usePatientRegistration
   
   // Hook personalizado para el registro de pacientes
   const { 
@@ -20,10 +18,11 @@ const SignupPage = () => {
     error, 
     success, 
     verificationToken,
-    patientId,
+    setVerificationToken,
+    setPatientId,
     registerPatient, 
     verifyCode, 
-    resetStates 
+    resetStates
   } = usePatientRegistration();
   
   // Configuración de react-hook-form para el primer paso (datos de acceso)
@@ -45,9 +44,8 @@ const SignupPage = () => {
     register: registerStep2, 
     handleSubmit: handleSubmitStep2, 
     formState: { errors: errorsStep2 },
-    setValue,
     watch,
-    getValues: getValuesStep2
+    setValue
   } = useForm({
     defaultValues: {
       name: '',
@@ -99,7 +97,7 @@ const SignupPage = () => {
   }, [watchIncludeEmergencyContact, setValue]);
   
   // Manejar envío del primer paso del formulario
-  const onSubmitStep1 = (data) => {
+  const onSubmitStep1 = () => {
     // Avanzar al segundo paso
     setStep(2);
   };
@@ -107,6 +105,13 @@ const SignupPage = () => {
   // Manejar envío del segundo paso del formulario
   const onSubmitStep2 = async (data) => {
     try {
+      console.log("Procesando envío del paso 2...");
+      
+      // Guardar el nombre y apellido en localStorage para garantizar que estén disponibles
+      // para la función de verificación y recuperación de nombre de usuario
+      localStorage.setItem('omegadent_registration_name', data.name);
+      localStorage.setItem('omegadent_registration_lastname', data.lastname);
+      
       // Preparar los datos para enviar al servidor
       const formDataToSubmit = {
         // Datos del paso 1
@@ -129,19 +134,41 @@ const SignupPage = () => {
         
         // Contacto de emergencia (si está incluido)
         emergencyContact: watchIncludeEmergencyContact ? {
-          firstName: data.emergencyContact.firstName || '',
-          lastName: data.emergencyContact.lastName || '',
-          phoneNumber: data.emergencyContact.phoneNumber || '',
-          occupation: data.emergencyContact.occupation || '',
-          familyRelationship: data.emergencyContact.familyRelationship || ''
+          firstName: data.emergencyContact?.firstName || '',
+          lastName: data.emergencyContact?.lastName || '',
+          phoneNumber: data.emergencyContact?.phoneNumber || '',
+          occupation: data.emergencyContact?.occupation || '',
+          familyRelationship: data.emergencyContact?.familyRelationship || ''
         } : null
       };
       
+      console.log("Enviando datos de registro al servidor...");
       // Llamar al servicio de registro
-      await registerPatient(formDataToSubmit);
+      const response = await registerPatient(formDataToSubmit);
+      console.log("Respuesta del registro:", response);
       
-      // Mostrar modal de verificación
-      setShowVerification(true);
+      // Actualizamos el token de verificación con el de la respuesta si existe
+      if (response && response.token) {
+        console.log("Token de verificación recibido de la API:", response.token);
+        setVerificationToken(response.token);
+        localStorage.setItem('omegadent_verification_token', response.token);
+        
+        if (response.patientId) {
+          setPatientId(response.patientId);
+          localStorage.setItem('omegadent_patient_id', response.patientId);
+        }
+      }
+      
+      // Mostramos el modal de verificación independientemente de si ya teníamos un token
+      console.log("Mostrando modal de verificación...");
+      // Usamos un timeout para asegurar que los estados se actualicen correctamente
+      setTimeout(() => {
+        setShowVerification(true);
+        toast.info('Por favor, verifica tu correo e ingresa el código recibido.');
+      }, 300);
+        
+      // Opción 2: Redirigir a la página de verificación (descomentar para usar)
+      // goToVerificationPage();
     } catch (error) {
       console.error('Error al registrar paciente:', error);
       // El error ya se maneja en el useEffect que escucha los cambios en el estado 'error'
@@ -151,27 +178,61 @@ const SignupPage = () => {
   // Manejar la verificación del código
   const handleCodeVerification = async (code) => {
     try {
+      console.log('Iniciando verificación de código:', code);
+      
       // Verificar el código con el backend
       await verifyCode(code);
       
-      // Ocultar modal de verificación
-      setShowVerification(false);
+      // Primero redireccionar a la página principal, ANTES de ocultar el modal
+      // Esto evita que se vea la pantalla de registro transitoria
       
-      // Mostrar modal de éxito
-      setShowSuccess(true);
+      // Crear un mensaje de éxito para mostrar en la página principal
+      const successMessage = {
+        type: 'success',
+        message: '¡Registro exitoso! Se ha iniciado sesión automáticamente',
+        timestamp: new Date().getTime()
+      };
+      
+      // Guardar mensaje en AMBOS localStorage y sessionStorage para garantizar que se muestre
+      localStorage.setItem('omegadent_toast_message', JSON.stringify(successMessage));
+      
+      // Usar sessionStorage como respaldo adicional
+      sessionStorage.setItem('just_registered', 'true');
+      
+      // Mostrar mensaje antes de redireccionar para garantizar que sea visible
+      toast.success('¡Registro exitoso! Se ha iniciado sesión automáticamente', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: { backgroundColor: "#0E6B96", color: "white", fontWeight: "bold", fontSize: "16px" }
+      });
+      
+      // Esperar un momento para que el usuario vea el mensaje antes de redireccionar
+      setTimeout(() => {
+        // Redireccionar a la página principal
+        window.location.href = '/';
+      }, 1500);
+      
+      // El modal se ocultará automáticamente al navegar, y ya no veremos la pantalla transitoria
     } catch (error) {
       console.error('Error al verificar código:', error);
-      // El error ya se maneja en el useEffect con el toast
-      toast.error("Error al verificar el código. Intente nuevamente.");
+      toast.error("Error al verificar el código. Intenta nuevamente.");
     }
   };
   
-  // Manejar cierre del modal de éxito
-  const handleSuccessClose = () => {
-    setShowSuccess(false);
-    // Redirigir al usuario a la página de inicio de sesión
-    navigate("/login");
+  /* Opción alternativa: usar página de verificación en lugar del modal
+  const goToVerificationPage = () => {
+    if (verificationToken) {
+      // Navegar a la página de verificación y pasar el token como parámetro
+      navigate(`/verification?token=${verificationToken}`);
+    } else {
+      toast.error('No se encontró un token de verificación válido');
+    }
   };
+  */
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A3E59] to-[#19CEB3] py-6">
@@ -183,7 +244,28 @@ const SignupPage = () => {
         </div>
       </div>
       
-      <div className="bg-white rounded-3xl shadow-lg p-6 w-full max-w-2xl mx-auto">
+      <div className="bg-white rounded-3xl shadow-lg p-6 w-full max-w-2xl mx-auto relative">
+        {/* Botón de cerrar/volver */}
+        <Link to="/" className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Link>
+        
+        {/* Botón de flecha para regresar - solo visible en el paso 2 */}
+        {step === 2 && (
+          <button
+            onClick={() => setStep(1)}
+            className="absolute left-6 top-6 text-gray-500 hover:text-gray-800 transition-colors focus:outline-none flex items-center"
+            aria-label="Regresar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-sm">Atrás</span>
+          </button>
+        )}
+        
         <h2 className="text-2xl font-bold text-center mb-2">
           {step === 1 ? 'Crea tu cuenta' : 'Información personal'}
         </h2>
@@ -312,13 +394,32 @@ const SignupPage = () => {
                     }
                   }}
                   onChange={(e) => {
-                    let value = e.target.value.replace(/[^0-9]/g, ''); // Eliminar cualquier carácter que no sea número
+                    // Obtener el valor actual
+                    let value = e.target.value;
                     
-                    // Si tenemos 8 o más dígitos, insertamos el guión
-                    if (value.length >= 8) {
-                      const firstPart = value.substring(0, 8);
-                      const secondPart = value.substring(8, 9);
-                      value = `${firstPart}-${secondPart}`;
+                    // Si es un borrado (valor más corto que el anterior), procesamos de forma especial
+                    const previousValue = watch("dui") || "";
+                    
+                    if (value.length < previousValue.length) {
+                      // El usuario está borrando, simplemente asignamos el nuevo valor
+                      // pero removemos caracteres no numéricos excepto el guión
+                      value = value.replace(/[^0-9-]/g, '');
+                      
+                      // Si el último caracter es un guión y el usuario está borrando, quitamos el guión también
+                      if (value.endsWith('-')) {
+                        value = value.slice(0, -1);
+                      }
+                    } else {
+                      // El usuario está añadiendo caracteres
+                      // Eliminar cualquier carácter que no sea número
+                      value = value.replace(/[^0-9]/g, '');
+                      
+                      // Si tenemos 8 o más dígitos, insertamos el guión
+                      if (value.length >= 8) {
+                        const firstPart = value.substring(0, 8);
+                        const secondPart = value.substring(8, 9);
+                        value = `${firstPart}-${secondPart}`;
+                      }
                     }
                     
                     // Actualizar el valor en react-hook-form
@@ -334,6 +435,7 @@ const SignupPage = () => {
               <div>
                 <input
                   type="text"
+                  maxLength="9"
                   {...registerStep2("phoneNumber", {
                     pattern: {
                       value: /^\d{4}-\d{4}$/,
@@ -342,6 +444,44 @@ const SignupPage = () => {
                   })}
                   className={`w-full px-4 py-3 border ${errorsStep2.phoneNumber ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
                   placeholder="Teléfono (0000-0000)"
+                  onKeyPress={(e) => {
+                    // Solo permitir dígitos y guión
+                    if (!/[\d-]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    // Obtener el valor actual
+                    let value = e.target.value;
+                    
+                    // Si es un borrado (valor más corto que el anterior), procesamos de forma especial
+                    const previousValue = watch("phoneNumber") || "";
+                    
+                    if (value.length < previousValue.length) {
+                      // El usuario está borrando, simplemente asignamos el nuevo valor
+                      // pero removemos caracteres no numéricos excepto el guión
+                      value = value.replace(/[^0-9-]/g, '');
+                      
+                      // Si el último caracter es un guión y el usuario está borrando, quitamos el guión también
+                      if (value.endsWith('-')) {
+                        value = value.slice(0, -1);
+                      }
+                    } else {
+                      // El usuario está añadiendo caracteres
+                      // Eliminar cualquier carácter que no sea número
+                      value = value.replace(/[^0-9]/g, '');
+                      
+                      // Si tenemos 4 o más dígitos, insertamos el guión
+                      if (value.length >= 4) {
+                        const firstPart = value.substring(0, 4);
+                        const secondPart = value.substring(4, 8);
+                        value = `${firstPart}-${secondPart}`;
+                      }
+                    }
+                    
+                    // Actualizar el valor en react-hook-form
+                    setValue("phoneNumber", value);
+                  }}
                 />
                 {errorsStep2.phoneNumber && (
                   <p className="text-red-500 text-xs mt-1">{errorsStep2.phoneNumber.message}</p>
@@ -375,10 +515,19 @@ const SignupPage = () => {
               <div>
                 <input
                   type="text"
-                  {...registerStep2("occupation")}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
-                  placeholder="Profesión/Ocupación"
+                  maxLength="35"
+                  {...registerStep2("occupation", {
+                    maxLength: {
+                      value: 35,
+                      message: "Máximo 35 caracteres para la profesión/ocupación"
+                    }
+                  })}
+                  className={`w-full px-4 py-3 border ${errorsStep2.occupation ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
+                  placeholder="Profesión/Ocupación (máx. 35 caracteres)"
                 />
+                {errorsStep2.occupation && (
+                  <p className="text-red-500 text-xs mt-1">{errorsStep2.occupation.message}</p>
+                )}
               </div>
             </div>
             
@@ -386,17 +535,52 @@ const SignupPage = () => {
             <div className="grid grid-cols-2 gap-4 mb-4">
               {/* Peso */}
               <div>
-                <input
-                  type="text"
-                  {...registerStep2("weight", {
-                    pattern: {
-                      value: /^\d+(\.\d+)?$/,
-                      message: "Ingrese un número válido"
-                    }
-                  })}
-                  className={`w-full px-4 py-3 border ${errorsStep2.weight ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
-                  placeholder="Peso (kg)"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    {...registerStep2("weight", {
+                      validate: {
+                        isValidNumber: (value) => {
+                          // Asegurarse de que es un número válido (entero o con un solo punto decimal)
+                          const validFormat = /^\d+(\.\d{1,2})?$/.test(value);
+                          if (!validFormat) return "Ingrese un número válido (ej. 70 o 70.5)";
+                          
+                          // Convertir a número para validar rango
+                          const numValue = parseFloat(value);
+                          if (numValue < 1) return "El peso mínimo es 1 kg";
+                          if (numValue > 300) return "El peso máximo es 300 kg";
+                          
+                          return true;
+                        }
+                      }
+                    })}
+                    className={`w-full px-4 py-3 border ${errorsStep2.weight ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96] pr-12`}
+                    placeholder="Peso"
+                    onChange={(e) => {
+                      // Permitir solo un punto decimal
+                      let value = e.target.value;
+                      
+                      // Eliminar cualquier caracter que no sea dígito o punto
+                      value = value.replace(/[^\d.]/g, '');
+                      
+                      // Si hay más de un punto decimal, conservar solo el primero
+                      const parts = value.split('.');
+                      if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                      }
+                      
+                      // Actualizar el valor
+                      setValue("weight", value);
+                    }}
+                    onKeyPress={(e) => {
+                      // Solo permitir dígitos y punto decimal
+                      if (!/[\d.]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">kg</span>
+                </div>
                 {errorsStep2.weight && (
                   <p className="text-red-500 text-xs mt-1">{errorsStep2.weight.message}</p>
                 )}
@@ -404,17 +588,52 @@ const SignupPage = () => {
               
               {/* Altura */}
               <div>
-                <input
-                  type="text"
-                  {...registerStep2("height", {
-                    pattern: {
-                      value: /^\d+(\.\d+)?$/,
-                      message: "Ingrese un número válido"
-                    }
-                  })}
-                  className={`w-full px-4 py-3 border ${errorsStep2.height ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
-                  placeholder="Altura (cm)"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    {...registerStep2("height", {
+                      validate: {
+                        isValidNumber: (value) => {
+                          // Asegurarse de que es un número válido (entero o con un solo punto decimal)
+                          const validFormat = /^\d+(\.\d{1,2})?$/.test(value);
+                          if (!validFormat) return "Ingrese un número válido (ej. 170 o 170.5)";
+                          
+                          // Convertir a número para validar rango
+                          const numValue = parseFloat(value);
+                          if (numValue < 30) return "La altura mínima es 30 cm";
+                          if (numValue > 250) return "La altura máxima es 250 cm";
+                          
+                          return true;
+                        }
+                      }
+                    })}
+                    className={`w-full px-4 py-3 border ${errorsStep2.height ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96] pr-12`}
+                    placeholder="Altura"
+                    onChange={(e) => {
+                      // Permitir solo un punto decimal
+                      let value = e.target.value;
+                      
+                      // Eliminar cualquier caracter que no sea dígito o punto
+                      value = value.replace(/[^\d.]/g, '');
+                      
+                      // Si hay más de un punto decimal, conservar solo el primero
+                      const parts = value.split('.');
+                      if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                      }
+                      
+                      // Actualizar el valor
+                      setValue("height", value);
+                    }}
+                    onKeyPress={(e) => {
+                      // Solo permitir dígitos y punto decimal
+                      if (!/[\d.]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">cm</span>
+                </div>
                 {errorsStep2.height && (
                   <p className="text-red-500 text-xs mt-1">{errorsStep2.height.message}</p>
                 )}
@@ -520,10 +739,57 @@ const SignupPage = () => {
                   <div className="w-1/3 px-2 mb-3">
                     <input
                       type="text"
-                      {...registerStep2("emergencyContact.phoneNumber")}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
-                      placeholder="Teléfono"
+                      maxLength="9"
+                      {...registerStep2("emergencyContact.phoneNumber", {
+                        pattern: {
+                          value: /^\d{4}-\d{4}$/,
+                          message: "El teléfono debe tener el formato 0000-0000"
+                        }
+                      })}
+                      className={`w-full px-3 py-2 border ${errorsStep2["emergencyContact"]?.phoneNumber ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
+                      placeholder="Teléfono (0000-0000)"
+                      onKeyPress={(e) => {
+                        // Solo permitir dígitos y guión
+                        if (!/[\d-]/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        // Obtener el valor actual
+                        let value = e.target.value;
+                        
+                        // Si es un borrado (valor más corto que el anterior), procesamos de forma especial
+                        const previousValue = watch("emergencyContact.phoneNumber") || "";
+                        
+                        if (value.length < previousValue.length) {
+                          // El usuario está borrando, simplemente asignamos el nuevo valor
+                          // pero removemos caracteres no numéricos excepto el guión
+                          value = value.replace(/[^0-9-]/g, '');
+                          
+                          // Si el último caracter es un guión y el usuario está borrando, quitamos el guión también
+                          if (value.endsWith('-')) {
+                            value = value.slice(0, -1);
+                          }
+                        } else {
+                          // El usuario está añadiendo caracteres
+                          // Eliminar cualquier carácter que no sea número
+                          value = value.replace(/[^0-9]/g, '');
+                          
+                          // Si tenemos 4 o más dígitos, insertamos el guión
+                          if (value.length >= 4) {
+                            const firstPart = value.substring(0, 4);
+                            const secondPart = value.substring(4, 8);
+                            value = `${firstPart}-${secondPart}`;
+                          }
+                        }
+                        
+                        // Actualizar el valor en react-hook-form
+                        setValue("emergencyContact.phoneNumber", value);
+                      }}
                     />
+                    {errorsStep2["emergencyContact"]?.phoneNumber && (
+                      <p className="text-red-500 text-xs mt-1">{errorsStep2["emergencyContact"].phoneNumber.message}</p>
+                    )}
                   </div>
                   
                   {/* Relación familiar */}
@@ -540,10 +806,19 @@ const SignupPage = () => {
                   <div className="w-1/2 px-2 mb-3">
                     <input
                       type="text"
-                      {...registerStep2("emergencyContact.occupation")}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]"
-                      placeholder="Ocupación"
+                      maxLength="35"
+                      {...registerStep2("emergencyContact.occupation", {
+                        maxLength: {
+                          value: 35,
+                          message: "Máximo 35 caracteres para la ocupación"
+                        }
+                      })}
+                      className={`w-full px-3 py-2 border ${errorsStep2["emergencyContact"]?.occupation ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0E6B96]`}
+                      placeholder="Ocupación (máx. 35 caracteres)"
                     />
+                    {errorsStep2["emergencyContact"]?.occupation && (
+                      <p className="text-red-500 text-xs mt-1">{errorsStep2["emergencyContact"].occupation.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -572,15 +847,11 @@ const SignupPage = () => {
         <CodeVerificationModal 
           onVerify={handleCodeVerification}
           onClose={() => setShowVerification(false)}
+          verificationToken={verificationToken}
         />
       )}
       
-      {/* Modal de éxito */}
-      {showSuccess && (
-        <SuccessModal 
-          onClose={handleSuccessClose}
-        />
-      )}
+      {/* Nota: El modal de éxito ha sido eliminado, ahora se muestra un toast y redirecciona automáticamente */}
     </div>
   );
 };

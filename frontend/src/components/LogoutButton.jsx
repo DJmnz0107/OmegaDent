@@ -10,12 +10,12 @@ const LogoutButton = ({ className }) => {
     setLoading(true);
     try {
       await authService.logout();
-      // Redirigir al usuario a la página de inicio o login
-      navigate('/login');
+      // Redirigir al usuario a la página principal
+      navigate('/');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      // Incluso si hay un error, redirigir igualmente
-      navigate('/login');
+      // Incluso si hay un error, redirigir igualmente a la página principal
+      navigate('/');
     } finally {
       setLoading(false);
     }

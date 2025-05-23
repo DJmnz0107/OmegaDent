@@ -1,8 +1,9 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
+import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './contexts/AuthContext'
+import { useEffect } from 'react'
 
 // Importamos los componentes que vamos a crear
 import Header from './components/Header'
@@ -22,6 +23,66 @@ import CodeVerificationPage from './pages/CodeVerificationPage'
 import NewPasswordPage from './pages/NewPasswordPage'
 import AppointmentPage from './pages/AppointmentPage'
 
+// Componente para mostrar mensajes guardados en localStorage
+function ToastMessageHandler() {
+  useEffect(() => {
+    // Implementar un pequeño retraso para asegurar que el componente se monte completamente
+    const timer = setTimeout(() => {
+      // Verificar si hay un mensaje toast guardado en localStorage
+      const savedToastMessage = localStorage.getItem('omegadent_toast_message');
+      
+      if (savedToastMessage) {
+        try {
+          const parsedMessage = JSON.parse(savedToastMessage);
+          const { type, message } = parsedMessage;
+          
+          // Siempre mostrar el mensaje, sin importar cuándo fue creado
+          if (type === 'success') {
+            toast.success(message, {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: { backgroundColor: "#0E6B96", color: "white", fontWeight: "bold", fontSize: "16px" }
+            });
+            console.log('Mostrando mensaje de éxito:', message);
+          } else if (type === 'error') {
+            toast.error(message);
+            console.log('Mostrando mensaje de error:', message);
+          }
+          
+          // Eliminar el mensaje después de mostrarlo
+          localStorage.removeItem('omegadent_toast_message');
+        } catch (error) {
+          console.error('Error al procesar mensaje toast:', error);
+          localStorage.removeItem('omegadent_toast_message');
+        }
+      } else {
+        // Verificar si venimos de un registro exitoso
+        const justRegistered = sessionStorage.getItem('just_registered');
+        if (justRegistered === 'true') {
+          toast.success("¡Registro exitoso! Se ha iniciado sesión automáticamente", {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            style: { backgroundColor: "#0E6B96", color: "white", fontWeight: "bold", fontSize: "16px" }
+          });
+          sessionStorage.removeItem('just_registered');
+        }
+      }
+    }, 800); // Esperar 800ms para asegurar que todo esté cargado
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  return null; // Este componente no renderiza nada visible
+}
+
 function App() {
   // La función principal del componente App
 
@@ -31,6 +92,9 @@ function App() {
       <AuthProvider>
         {/* Contenedor de notificaciones Toast global */}
         <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick />
+        
+        {/* Componente que maneja la visualización de mensajes toast guardados */}
+        <ToastMessageHandler />
         
         <Routes>
         {/* Ruta principal - Landing Page */}

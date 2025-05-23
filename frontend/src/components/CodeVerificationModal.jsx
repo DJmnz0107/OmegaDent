@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 // Modal para verificación de código enviado al correo electrónico
-const CodeVerificationModal = ({ onVerify, onClose }) => {
+const CodeVerificationModal = ({ onVerify, onClose, verificationToken }) => {
   // Estado para manejar la carga
   const [loading, setLoading] = useState(false);
   // Crear referencias individuales para cada campo de entrada
@@ -62,10 +62,18 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
 
     try {
       setLoading(true);
+      console.log('Código completo a verificar:', code.join(''));
+      console.log('Token de verificación utilizado:', verificationToken);
+      
       // Llamar a la función de verificación proporcionada por el componente padre
+      // Pasar el código completo
       await onVerify(code.join(''));
+      
+      // Mostrar mensaje de éxito tras verificación exitosa
+      toast.success('¡Código verificado correctamente!');
     } catch (error) {
       console.error('Error al verificar código:', error);
+      toast.error(error.message || 'Error al verificar el código');
       // Los errores ya se manejan en el componente padre
     } finally {
       setLoading(false);
@@ -100,9 +108,19 @@ const CodeVerificationModal = ({ onVerify, onClose }) => {
       
       {/* Contenedor del modal */}
       <div 
-        className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4"
+        className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 relative"
         onClick={handleModalContentClick}
       >
+        {/* Botón de cerrar (X) en la esquina superior derecha */}
+        <button
+          onClick={onClose}
+          className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors focus:outline-none"
+          aria-label="Cerrar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         {/* Título del modal - exactamente como en la imagen 3 */}
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Verificación de código

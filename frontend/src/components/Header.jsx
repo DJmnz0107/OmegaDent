@@ -1,6 +1,6 @@
 // Componente Header con navegación para la landing page
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AppointmentModal from './AppointmentModal';
 import { useAuth } from '../contexts/AuthContext';
 import LogoutButton from './LogoutButton';
@@ -10,6 +10,7 @@ const Header = () => {
   const [activeItem, setActiveItem] = useState('inicio');
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la apertura del modal
   const location = useLocation();
+  const navigate = useNavigate(); // Inicializar el hook de navegación
   
   // Usar el contexto de autenticación
   const { isAuthenticated, userName, logout } = useAuth();
@@ -52,10 +53,21 @@ const Header = () => {
     setIsMenuOpen(false);
   };
   
-  // Abrir modal de agendar cita
+  // Manejar clic en agendar cita
   const handleAppointmentClick = (e) => {
     e.preventDefault(); // Prevenir la navegación predeterminada
-    setIsModalOpen(true); // Abrir el modal
+    
+    if (isAuthenticated) {
+      // Si el usuario está autenticado, redirigir directamente a la página de citas
+      // Usar navigate en lugar de window.location para mantener el estado de React
+      navigate('/appointment');
+      console.log('Usuario autenticado, redirigiendo a /appointment');
+    } else {
+      // Si no está autenticado, mostrar el modal
+      setIsModalOpen(true);
+      console.log('Usuario no autenticado, mostrando modal');
+    }
+    
     if (isMenuOpen) {
       setIsMenuOpen(false); // Cerrar el menú móvil si está abierto
     }

@@ -113,11 +113,47 @@ loginController.login = async (req, res) => {
           maxAge: 24 * 60 * 60 * 1000 // 24 horas en milisegundos
         });
         
-        // Devolver el token también en el cuerpo de la respuesta para clientes móviles
+        // Extraer los datos del usuario para la respuesta
+        let userData = {};
+        
+        // Dependiendo del tipo de usuario, obtener el nombre correspondiente
+        if (userType === "paciente") {
+          userData = {
+            name: `${userFound.name} ${userFound.lastname}`,
+            email: userFound.email,
+            id: userFound._id
+          };
+        } else if (userType === "doctor") {
+          userData = {
+            name: `Dr. ${userFound.name} ${userFound.lastname}`,
+            email: userFound.email,
+            id: userFound._id
+          };
+        } else if (userType === "asistente") {
+          userData = {
+            name: `${userFound.name} ${userFound.lastname}`,
+            email: userFound.email,
+            id: userFound._id
+          };
+        } else if (userType === "administrador" && userFound._id !== "admin") {
+          userData = {
+            name: `Admin ${userFound.name}`,
+            email: userFound.email,
+            id: userFound._id
+          };
+        } else {
+          userData = {
+            name: "Administrador",
+            id: "admin"
+          };
+        }
+        
+        // Devolver el token y los datos del usuario en el cuerpo de la respuesta
         res.json({ 
           message: `Inicio de sesión exitoso como ${userType}`, 
           token,
-          userType 
+          userType,
+          userData
         });
       }
     );

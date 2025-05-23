@@ -12,9 +12,14 @@ const authService = {
         localStorage.setItem('omegadent_token', response.data.token);
         localStorage.setItem('omegadent_user_type', response.data.userType);
         
-        // Guardar el nombre del usuario simulado
-        const userName = authService.generateUserName(response.data.userType);
-        localStorage.setItem('omegadent_user_name', userName);
+        // Guardar el nombre real del usuario desde la respuesta del backend
+        // Ahora usamos userData.name que contiene el nombre completo del usuario
+        if (response.data.userData && response.data.userData.name) {
+          localStorage.setItem('omegadent_user_name', response.data.userData.name);
+        } else {
+          // Fallback en caso de que no venga el nombre del usuario
+          localStorage.setItem('omegadent_user_name', response.data.email || 'Usuario');
+        }
       }
       
       return response.data;
@@ -65,6 +70,33 @@ const authService = {
   // Obtener el nombre del usuario
   getUserName: () => {
     return localStorage.getItem('omegadent_user_name') || 'Usuario';
+  },
+  
+  // Establecer el token JWT
+  setToken: (token) => {
+    if (token) {
+      localStorage.setItem('omegadent_token', token);
+    } else {
+      localStorage.removeItem('omegadent_token');
+    }
+  },
+  
+  // Establecer el tipo de usuario
+  setUserType: (userType) => {
+    if (userType) {
+      localStorage.setItem('omegadent_user_type', userType);
+    } else {
+      localStorage.removeItem('omegadent_user_type');
+    }
+  },
+  
+  // Establecer el nombre del usuario
+  setUserName: (userName) => {
+    if (userName) {
+      localStorage.setItem('omegadent_user_name', userName);
+    } else {
+      localStorage.removeItem('omegadent_user_name');
+    }
   },
   
   // Generar un nombre de usuario basado en el tipo (simulación)

@@ -1,10 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import authService from '../services/authService';
 
 // Crear el contexto de autenticación
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 /**
  * Proveedor de contexto de autenticación
@@ -21,23 +21,44 @@ export const AuthProvider = ({ children }) => {
   const [userName, setUserName] = useState(null);
   const [user, setUser] = useState(null);
   
-  // Verificar si hay un token almacenado al cargar la aplicación
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = authService.getToken();
-      const userTypeStored = authService.getUserType();
-      const userNameStored = authService.getUserName();
-      
-      if (token) {
+  // Memoizar la función para evitar creaciones innecesarias en cada renderizado
+  const updateAuthState = useCallback(() => {
+    // Obtener datos actuales sin logging
+    const token = authService.getToken();
+    const userTypeStored = authService.getUserType();
+    const userNameStored = authService.getUserName();
+    
+    // Solo actualizar si realmente hay cambios
+    if (token) {
+      if (!isAuthenticated || userType !== userTypeStored || userName !== userNameStored) {
         setIsAuthenticated(true);
         setUserType(userTypeStored);
         setUserName(userNameStored);
-        // Aquí podrías cargar información adicional del usuario si es necesario
       }
+    } else if (isAuthenticated) {
+      setIsAuthenticated(false);
+      setUserType(null);
+      setUserName(null);
+      setUser(null);
+    }
+  }, [isAuthenticated, userType, userName]);
+  
+  // Efecto para verificar si hay un token almacenado al cargar la aplicación
+  useEffect(() => {
+    // Actualizar una sola vez al iniciar
+    updateAuthState();
+    
+    // Escuchar eventos de storage para detectar cambios en el localStorage
+    const handleStorageChange = () => {
+      updateAuthState();
     };
     
-    checkAuth();
-  }, []);
+    // Usar el evento de storage para detectar cambios
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Limpiar el listener cuando el componente se desmonte
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [updateAuthState]);
   
   /**
    * Función para iniciar sesión
@@ -62,11 +83,22 @@ export const AuthProvider = ({ children }) => {
       setUserType(response.userType);
       setUserName(authService.getUserName());
       
-      // Mostrar notificación de éxito
-      toast.success(`¡Bienvenido ${authService.getUserName()}! Inicio de sesión exitoso`);
+      // Mostrar notificación de éxito prominente
+      toast.success(`¡Bienvenido ${authService.getUserName()}! Inicio de sesión exitoso`, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       
-      // Redireccionar a la página principal después del login
-      navigate('/');
+      // Esperar un momento para que el usuario vea el mensaje antes de redirigir
+      setTimeout(() => {
+        // Redireccionar a la página principal después del login
+        navigate('/');
+      }, 1500);
       
       return response;
     } catch (err) {
@@ -95,10 +127,13 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       
       // Notificación
-      toast.info('Has cerrado sesión correctamente');
+      toast.info('Has cerrado sesión correctamente', {
+        position: "top-center",
+        autoClose: 3000
+      });
       
-      // Redireccionar al inicio
-      navigate('/login');
+      // Redireccionar a la página principal
+      navigate('/');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       toast.error('Error al cerrar sesión');
@@ -108,27 +143,28 @@ export const AuthProvider = ({ children }) => {
       setUserType(null);
       setUserName(null);
       setUser(null);
-      navigate('/login');
+      navigate('/');
     } finally {
       setLoading(false);
     }
   };
   
   
-  // Valores a compartir en el contexto
-  const value = {
+  // Creamos el objeto con todas las funciones y estados a compartir
+  const authContextValue = {
     isAuthenticated,
-    loading,
-    error,
     userType,
     userName,
     user,
+    loading,
+    error,
     login,
-    logout
+    logout,
+    updateAuthState
   };
   
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );

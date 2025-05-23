@@ -1,8 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 const AppointmentPage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  
+  // Verificar autenticación al cargar la página
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error('Necesitas iniciar sesión para acceder a esta página');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+  
   const [formData, setFormData] = useState({
     date: '',
     time: '',

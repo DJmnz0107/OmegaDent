@@ -33,7 +33,14 @@ const RecoveryPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A3E59] to-[#19CEB3]">
-      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md">
+      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md relative">
+        {/* Botón de cerrar/volver */}
+        <Link to="/" className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Link>
+        
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold text-gray-800">Confirma tu correo electrónico</h2>
           <p className="text-gray-600 mt-2">

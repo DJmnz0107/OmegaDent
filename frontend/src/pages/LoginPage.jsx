@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContext'; // Importamos el hook del contexto
 
@@ -30,18 +30,30 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
+  // Obtenemos la función para actualizar el estado de autenticación
+  const { updateAuthState } = useAuth();
+  
   // Función para manejar el envío del formulario con react-hook-form
   const onSubmit = async (data) => {
     try {
       // Usamos la función login del hook personalizado
+      // La función login en el contexto de autenticación ya se encarga de mostrar
+      // el mensaje de éxito y la redirección
       await login({
         email: data.email,
         password: data.password
       }, data.rememberMe);
       
-      // El hook useAuth se encarga de mostrar las notificaciones y redireccionar
+      // Solo actualizamos el estado de autenticación inmediatamente
+      updateAuthState();
+      
+      // No necesitamos mostrar un mensaje ni hacer redirección aquí
+      // porque ya se maneja en el contexto de autenticación
     } catch (err) {
-      // Los errores ya son manejados por el hook useAuth
+      // Mostrar un mensaje de error claro
+      toast.error(err.message || "Error al iniciar sesión. Verifica tus credenciales.", {
+        position: "top-center"
+      });
       console.error('Error en el formulario de login:', err);
     }
   };
@@ -51,7 +63,14 @@ const LoginPage = () => {
       {/* Contenedor de notificaciones Toast */}
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick />  
       
-      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md">
+      <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md relative">
+        {/* Botón de cerrar/volver */}
+        <Link to="/" className="absolute right-6 top-6 text-gray-500 hover:text-gray-800 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Link>
+        
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold text-gray-800">Iniciar sesión con la cuenta de OMEGA</h2>
           <p className="text-gray-600 mt-2">¡Bienvenido de nuevo!</p>
