@@ -13,12 +13,16 @@ const authService = {
         localStorage.setItem('omegadent_user_type', response.data.userType);
         
         // Guardar el nombre real del usuario desde la respuesta del backend
-        // Ahora usamos userData.name que contiene el nombre completo del usuario
         if (response.data.userData && response.data.userData.name) {
           localStorage.setItem('omegadent_user_name', response.data.userData.name);
         } else {
           // Fallback en caso de que no venga el nombre del usuario
           localStorage.setItem('omegadent_user_name', response.data.email || 'Usuario');
+        }
+        
+        // Guardar los datos completos del usuario
+        if (response.data.userData) {
+          localStorage.setItem('omegadent_user_data', JSON.stringify(response.data.userData));
         }
       }
       
@@ -38,6 +42,7 @@ const authService = {
       localStorage.removeItem('omegadent_token');
       localStorage.removeItem('omegadent_user_type');
       localStorage.removeItem('omegadent_user_name');
+      localStorage.removeItem('omegadent_user_data');
       
       return response.data;
     } catch (error) {
@@ -47,6 +52,7 @@ const authService = {
       localStorage.removeItem('omegadent_token');
       localStorage.removeItem('omegadent_user_type');
       localStorage.removeItem('omegadent_user_name');
+      localStorage.removeItem('omegadent_user_data');
       
       throw error.response ? error.response.data : { message: 'Error de conexión' };
     }
@@ -113,6 +119,20 @@ const authService = {
       default:
         return `Usuario ${userType}`;
     }
+  },
+  
+  // Obtener los datos completos del usuario
+  getUserData: () => {
+    const userData = localStorage.getItem('omegadent_user_data');
+    if (userData) {
+      try {
+        return JSON.parse(userData);
+      } catch (error) {
+        console.error('Error al parsear datos de usuario:', error);
+        return null;
+      }
+    }
+    return null;
   }
 };
 

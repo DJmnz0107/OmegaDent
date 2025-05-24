@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { useEffect } from 'react'
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Importamos los componentes que vamos a crear
 import Header from './components/Header'
@@ -137,8 +138,12 @@ function App() {
         <Route path="/verify-code" element={<CodeVerificationPage />} />
         <Route path="/new-password" element={<NewPasswordPage />} />
         
-        {/* Ruta para la página de citas */}
-        <Route path="/appointment" element={<AppointmentPage />} />
+        {/* Ruta para la página de citas - Protegida para pacientes y administradores */}
+        <Route path="/appointment" element={
+          <ProtectedRoute allowedRoles={["paciente", "administrador"]}>
+            <AppointmentPage />
+          </ProtectedRoute>
+        } />
       </Routes>
       </AuthProvider>
     </Router>

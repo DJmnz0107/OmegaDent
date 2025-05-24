@@ -34,6 +34,12 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         setUserType(userTypeStored);
         setUserName(userNameStored);
+        
+        // Obtener datos de usuario del almacenamiento local
+        const userData = authService.getUserData();
+        if (userData) {
+          setUser(userData);
+        }
       }
     } else if (isAuthenticated) {
       setIsAuthenticated(false);
@@ -82,6 +88,11 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setUserType(response.userType);
       setUserName(authService.getUserName());
+      
+      // Establecer datos del usuario
+      if (response.userData) {
+        setUser(response.userData);
+      }
       
       // Mostrar notificación de éxito prominente
       toast.success(`¡Bienvenido ${authService.getUserName()}! Inicio de sesión exitoso`, {

@@ -12,7 +12,7 @@ import loginRoutes from "./src/routes/login.js";
 import logoutRoutes from "./src/routes/logout.js";
 import registerPatientsRoutes from "./src/routes/registerPatients.js";
 import registerDoctorsRoutes from "./src/routes/registerDoctors.js";
-
+import { verifyToken, checkRole } from "./src/middlewares/authMiddleware.js";
 //Creso la constante para poder usar express en otros archivos
 const app = express();
 
@@ -35,7 +35,11 @@ app.use(
 app.use("/api/doctors", doctorsRoutes);
 app.use("/api/patients", patientsRoutes);
 app.use("/api/services", servicesRoutes);
-app.use("/api/appointments", appointmentsRoutes);
+app.use("/api/appointments", 
+  verifyToken,                                 // Primero verifica el token
+  checkRole(["paciente", "administrador"]),    // Luego verifica los roles permitidos
+  appointmentsRoutes                           // Finalmente usa las rutas
+);
 app.use("/api/admins", adminsRoutes);
 app.use("/api/assistants", assistantsRoutes);
 
