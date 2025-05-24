@@ -1,11 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import appointmentService from '../services/appointmentService';
+import ratingService from '../services/ratingService';
 import { toast } from 'react-toastify';
 
 const useAppointments = () => {
   const [appointments, _] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
+  const [ratedAppointments, setRatedAppointments] = useState([]);
+  const [ratingsData, setRatingsData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { isAuthenticated, userType, user } = useAuth();
@@ -129,29 +132,88 @@ const useAppointments = () => {
     }
   };
 
+  // Cargar las citas calificadas por el usuario
+  const loadRatedAppointments = useCallback(async () => {
+    if (!isAuthenticated) return [];
+    
+    const userId = getUserId();
+    if (!userId) return [];
+    
+    try {
+      // Obtener las calificaciones del usuario
+      const ratings = await ratingService.getRatingsByUser(userId);
+      
+      // Crear un objeto para almacenar toda la información de calificaciones
+      const ratingsInfo = {};
+      
+      // Guardar los IDs de las citas calificadas
+      const ratedIds = ratings.map(rating => {
+        // Determinar el ID de la cita
+        const appointmentId = typeof rating.appointment_id === 'string' 
+          ? rating.appointment_id 
+          : rating.appointment_id?._id;
+          
+        if (appointmentId) {
+          // Guardar los datos completos de la calificación
+          ratingsInfo[appointmentId] = {
+            score: rating.rating_score,
+            comment: rating.comment || '',
+            date: rating.createdAt || new Date().toISOString()
+          };
+        }
+        
+        return appointmentId;
+      }).filter(id => id); // Filtrar valores nulos o undefined
+      
+      // Actualizar el estado con la información completa de calificaciones
+      setRatingsData(ratingsInfo);
+      setRatedAppointments(ratedIds);
+      
+      console.log('Ratings cargados:', ratingsInfo); // Para debugging
+      
+      return ratedIds;
+    } catch (error) {
+      console.error('Error al cargar citas calificadas:', error);
+      return [];
+    }
+  }, [isAuthenticated, getUserId]);
+
+  // Verificar si una cita ya ha sido calificada
+  const isAppointmentRated = useCallback((appointmentId) => {
+    return ratedAppointments.includes(appointmentId);
+  }, [ratedAppointments]);
+
   // Calificar una cita
   const rateAppointment = async (appointmentId, rating, comment = '') => {
     setLoading(true);
     setError(null);
     
     try {
-      // Esta función es un placeholder - en un sistema real, enviarías la calificación al backend
-      // Ejemplo: await api.post(`/appointments/${appointmentId}/rating`, { rating, comment });
+      const userId = getUserId();
+      if (!userId) {
+        throw new Error('No se pudo obtener el ID del usuario');
+      }
       
-      // Simulamos una llamada exitosa
-      console.log(`Cita ${appointmentId} calificada con ${rating} estrellas. Comentario: ${comment}`);
+      // Crear el objeto de calificación
+      const ratingData = {
+        user_id: userId,
+        appointment_id: appointmentId,
+        rating_score: rating,
+        comment
+      };
       
-      // Actualizamos la UI inmediatamente sin esperar al backend
+      // Enviar la calificación al backend
+      const response = await ratingService.createRating(ratingData);
+      
+      // Actualizar la lista de citas calificadas
+      await loadRatedAppointments();
+      
+      // Mostrar mensaje de éxito
       toast.success(`¡Gracias por tu valoración de ${rating} estrellas!`);
       
-      // En un sistema real, podrías actualizar el estado local con la nueva calificación
-      // setUserAppointments(prev => prev.map(app => 
-      //   app._id === appointmentId ? { ...app, rating } : app
-      // ));
-      
-      return { success: true };
+      return response;
     } catch (err) {
-      const errorMessage = 'Error al enviar tu valoración';
+      const errorMessage = err.response?.data?.message || err.message || 'Error al enviar tu valoración';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -164,18 +226,23 @@ const useAppointments = () => {
   useEffect(() => {
     if (isAuthenticated && (userType === 'paciente' || userType === 'administrador')) {
       loadUserAppointments();
+      loadRatedAppointments();
     }
-  }, [isAuthenticated, userType, loadUserAppointments]);
+  }, [isAuthenticated, userType, loadUserAppointments, loadRatedAppointments]);
 
   return {
     appointments,
     userAppointments,
+    ratedAppointments,
+    ratingsData,      // Exponemos la información completa de calificaciones
     loading,
     error,
     createAppointment,
     cancelAppointment,
     rateAppointment,
-    loadUserAppointments
+    loadUserAppointments,
+    loadRatedAppointments,
+    isAppointmentRated
   };
 };
 

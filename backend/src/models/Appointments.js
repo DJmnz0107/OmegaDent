@@ -41,7 +41,7 @@ const appointmentsSchema = new Schema(
         },
         appointment_status: {
             type: String,
-            enum: ["pendiente", "completada", "cancelada"],
+            enum: ["pendiente", "finalizada", "cancelada", "confirmada"],
             default: "pendiente",
         },
         doctor_id: {

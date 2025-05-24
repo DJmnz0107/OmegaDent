@@ -12,6 +12,7 @@ import loginRoutes from "./src/routes/login.js";
 import logoutRoutes from "./src/routes/logout.js";
 import registerPatientsRoutes from "./src/routes/registerPatients.js";
 import registerDoctorsRoutes from "./src/routes/registerDoctors.js";
+import ratingsRoutes from "./src/routes/ratings.js";
 import { verifyToken, checkRole } from "./src/middlewares/authMiddleware.js";
 //Creso la constante para poder usar express en otros archivos
 const app = express();
@@ -51,6 +52,12 @@ app.use("/api/register/doctors", registerDoctorsRoutes);
 
 // Ruta de inicio para verificar que el servidor funciona
 
+// Rutas para calificaciones - Requiere autenticación
+app.use("/api/ratings", 
+  verifyToken,                                          // Primero verifica el token
+  checkRole(["paciente", "doctor", "administrador"]),  // Luego verifica los roles permitidos
+  ratingsRoutes                                         // Finalmente usa las rutas
+);
 
 //Archivo la constante para poder usar express en otros archivos
 export default app;
