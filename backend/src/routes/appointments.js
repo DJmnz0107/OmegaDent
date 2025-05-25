@@ -2,22 +2,23 @@ import express from "express";
 
 const router = express.Router();
 import appointmentsController from "../controllers/appointmentsController.js";
+import { verifyToken, checkRole } from "../middlewares/authMiddleware.js";
 
 // Rutas básicas CRUD
 router
 .route("/")
-.get(appointmentsController.getAppointments)
-.post(appointmentsController.createAppointment)
+.get(verifyToken, appointmentsController.getAppointments)
+.post(verifyToken, appointmentsController.createAppointment)
 
 router
 .route("/:id")
-.get(appointmentsController.getAppointmentById)
-.put(appointmentsController.updateAppointment)
-.delete(appointmentsController.deleteAppointment)
+.get(verifyToken, appointmentsController.getAppointmentById)
+.put(verifyToken, appointmentsController.updateAppointment)
+.delete(verifyToken, appointmentsController.deleteAppointment)
 
 // Rutas adicionales
-router.get("/patient/:patientId", appointmentsController.getAppointmentsByPatient);
-router.get("/doctor/:doctorId", appointmentsController.getAppointmentsByDoctor);
-router.patch("/:id/status", appointmentsController.changeAppointmentStatus);
+router.get("/patient/:patientId", verifyToken, appointmentsController.getAppointmentsByPatient);
+router.get("/doctor/:doctorId", verifyToken, appointmentsController.getAppointmentsByDoctor);
+router.patch("/:id/status", verifyToken, appointmentsController.changeAppointmentStatus);
 
 export default router;

@@ -107,8 +107,13 @@ const ServicesPage = () => {
     <>
       <Header />
       
-      {/* Hero Section con gradiente azul */}
-      <section className="pt-32 pb-16 bg-gradient-to-r from-[#0A2F43] to-[#0E6B96]">
+      {/* Hero Section con imagen de fondo */}
+      <section className="pt-32 pb-16 relative" style={{
+        backgroundImage: 'linear-gradient(to right, rgba(10, 47, 67, 0.85), rgba(14, 107, 150, 0.85)), url(/section_1.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
         <div className="container mx-auto px-4 max-w-6xl text-center text-white">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Nuestros Servicios Dentales
@@ -136,7 +141,7 @@ const ServicesPage = () => {
             {services.map((service) => (
               <div 
                 key={service.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+                className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-4">

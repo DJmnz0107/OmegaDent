@@ -9,4 +9,18 @@ const api = axios.create({
   }
 });
 
+// Interceptor para agregar el token JWT a todas las solicitudes
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('omegadent_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default api;

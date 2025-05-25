@@ -84,10 +84,12 @@ appointmentsController.getAppointmentsByDoctor = async (req, res) => {
 // Crea una nueva cita
 appointmentsController.createAppointment = async (req, res) => {
     try {
+        console.log('Creando cita con usuario autenticado:', req.user);
+        
         const { 
             appointment_date, 
             appointment_time, 
-            patient_id,  
+            patient_id: bodyPatientId,  
             problem_description,
             // Estos campos se podrán asignar después por un administrador
             service_id,
@@ -95,6 +97,18 @@ appointmentsController.createAppointment = async (req, res) => {
             appointment_confirmation, 
             appointment_status
         } = req.body;
+
+        // Usar el ID del paciente del token si el usuario es un paciente,
+        // de lo contrario usar el ID proporcionado en el cuerpo
+        let patient_id = bodyPatientId;
+        
+        // Si el usuario autenticado es un paciente, usar su ID
+        if (req.user && req.user.userType === 'paciente') {
+            console.log('Usuario autenticado es paciente, usando su ID:', req.user.id);
+            patient_id = req.user.id;
+        }
+        
+        console.log('ID de paciente a usar para la cita:', patient_id);
 
         // Validación de campos requeridos
         if (!appointment_date || !appointment_time || !patient_id) {
@@ -106,7 +120,9 @@ appointmentsController.createAppointment = async (req, res) => {
         // Validamos que el paciente existe
         const patientExists = await patientsModel.exists({ _id: patient_id });
         if (!patientExists) {
-            return res.status(400).json({ message: "El paciente especificado no existe" });
+            return res.status(404).json({ 
+                message: "Paciente no encontrado. ID: " + patient_id 
+            });
         }
 
         // Validamos doctor_id y service_id solo si se proporcionan

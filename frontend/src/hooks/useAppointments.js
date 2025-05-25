@@ -15,15 +15,61 @@ const useAppointments = () => {
 
   // Obtener el ID del usuario del almacenamiento local si está disponible
   const getUserId = useCallback(() => {
+    console.log('Obteniendo ID de usuario, datos actuales:', { user });
+    
     // Si tenemos el ID del usuario en el contexto, usarlo
-    if (user?.id) return user.id;
+    if (user?.id) {
+      console.log('ID obtenido del contexto:', user.id);
+      return user.id;
+    }
     
     // Intentar obtener el ID del localStorage
     try {
       const userData = localStorage.getItem('omegadent_user_data');
       if (userData) {
         const parsedData = JSON.parse(userData);
-        return parsedData.id;
+        if (parsedData.id) {
+          console.log('ID obtenido de localStorage (user_data):', parsedData.id);
+          return parsedData.id;
+        }
+      }
+
+      // Si no hay datos en localStorage, verificar el token JWT
+      const token = localStorage.getItem('omegadent_token');
+      if (token) {
+        console.log('Token encontrado, intentando decodificar...');
+        // Intentar decodificar el token para obtener el ID del usuario
+        // El token JWT tiene tres partes separadas por puntos
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          // La segunda parte contiene los datos del usuario en formato base64
+          try {
+            // Decodificar correctamente el base64url
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(atob(base64));
+            console.log('Payload del token JWT:', payload);
+            
+            // Buscar el ID en diferentes formatos posibles
+            const userId = payload.id || payload.userId || payload.user_id || 
+                          payload.sub || (payload.user && payload.user.id);
+            
+            if (userId) {
+              console.log('ID de usuario recuperado del token JWT:', userId);
+              
+              // Guardar el ID en localStorage para futuras referencias
+              if (!userData) {
+                const newUserData = { id: userId };
+                localStorage.setItem('omegadent_user_data', JSON.stringify(newUserData));
+              }
+              
+              return userId;
+            } else {
+              console.warn('No se pudo encontrar ID en el token JWT:', payload);
+            }
+          } catch (decodeError) {
+            console.error('Error al decodificar token JWT:', decodeError);
+          }
+        }
       }
     } catch (error) {
       console.error('Error al obtener ID de usuario:', error);
