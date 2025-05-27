@@ -1,6 +1,8 @@
 import React from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 
 const ServicesPage = () => {
   // Lista de servicios dentales basada en la imagen
@@ -108,57 +110,102 @@ const ServicesPage = () => {
       <Header />
       
       {/* Hero Section con imagen de fondo */}
-      <section className="pt-32 pb-16 relative" style={{
-        backgroundImage: 'linear-gradient(to right, rgba(10, 47, 67, 0.85), rgba(14, 107, 150, 0.85)), url(/section_1.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}>
+      <motion.section 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        transition={{ duration: 0.8 }}
+        className="pt-32 pb-16 relative" 
+        style={{
+          backgroundImage: 'linear-gradient(to right, rgba(10, 47, 67, 0.85), rgba(14, 107, 150, 0.85)), url(/section_1.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}>
         <div className="container mx-auto px-4 max-w-6xl text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <motion.h1 
+            initial={{ y: -50, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-4xl md:text-5xl font-bold mb-4"
+          >
             Nuestros Servicios Dentales
-          </h1>
-          <p className="text-lg mb-8 max-w-2xl mx-auto">
+          </motion.h1>
+          <motion.p 
+            initial={{ y: 30, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="text-lg mb-8 max-w-2xl mx-auto"
+          >
             Tecnología avanzada y atención personalizada para tu sonrisa perfecta
-          </p>
+          </motion.p>
           
           {/* Call to Action */}
           <div className="mt-8">
             <h3 className="text-xl font-medium mb-4">
               ¿Listo para mejorar tu sonrisa?
             </h3>
-            <button className="bg-[#0EB19B] hover:bg-[#0c9e8a] text-white py-2 px-6 rounded-full font-medium">
+            <motion.button 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+              initial={{ y: 20, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+              className="bg-[#0EB19B] hover:bg-[#0c9e8a] text-white py-2 px-6 rounded-full font-medium"
+            >
               Agenda tu cita hoy y descubre la diferencia de nuestro servicio profesional
-            </button>
+            </motion.button>
           </div>
         </div>
-      </section>
+      </motion.section>
       
       {/* Grid de Servicios */}
-      <section className="py-16 bg-white">
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8 }}
+        className="py-16 bg-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service) => (
-              <div 
+            {services.map((service, index) => (
+              <motion.div 
                 key={service.id}
-                className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.05,
+                  ease: "easeOut" 
+                }}
+                whileHover={{ 
+                  y: -5, 
+                  boxShadow: "0 10px 25px -5px rgba(14, 107, 150, 0.1), 0 8px 10px -6px rgba(14, 107, 150, 0.1)" 
+                }}
+                className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 p-6 transition-all duration-300"
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="mb-4">
-                    <img 
+                  <motion.div 
+                    className="mb-4"
+                    whileHover={{ rotate: [0, 5, -5, 0], transition: { duration: 0.5 } }}
+                  >
+                    <motion.img 
+                      initial={{ scale: 0.8 }}
+                      whileInView={{ scale: 1 }}
+                      transition={{ delay: index * 0.05 + 0.2, duration: 0.3 }}
                       src={service.icon} 
                       alt={service.name} 
                       className="w-12 h-12 text-[#0E6B96]"
                     />
-                  </div>
+                  </motion.div>
                   <h3 className="text-[#0E6B96] font-semibold mb-2">{service.name}</h3>
                   <p className="text-gray-600 text-sm">{service.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
       
       <Footer />
     </>

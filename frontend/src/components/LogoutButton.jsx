@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 const LogoutButton = ({ className }) => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { logout } = useAuth(); // Usar el contexto de autenticación
 
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await authService.logout();
-      // Redirigir al usuario a la página principal
-      navigate('/');
+      await logout(); // Usar la función logout del contexto
+      // Forzar actualización del componente
+      window.dispatchEvent(new Event('storage'));
+      // No es necesario redireccionar, el contexto ya lo hace
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      // Incluso si hay un error, redirigir igualmente a la página principal
-      navigate('/');
     } finally {
       setLoading(false);
     }
