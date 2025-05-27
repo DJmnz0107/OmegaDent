@@ -1,6 +1,7 @@
 // Componente Hero para la sección principal con imagen destacada
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   staggerContainer, 
   staggerItem 
@@ -83,15 +84,17 @@ const Hero = () => {
               Omega es una aplicación pensada para optimizar la experiencia dental desde ambos lados: clínicas y usuarios. Para los profesionales, ofrece herramientas para gestionar citas, historiales clínicos y seguimiento de tratamientos. Para los pacientes, facilita la reserva de turnos, el acceso a su historial y la comunicación con su dentista.
             </motion.p>
             
-            <motion.button 
-              className="bg-[#0E6B96] hover:bg-[#0EB19B] text-white py-3 px-8 rounded-full font-medium transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#0EB19B] focus:ring-opacity-50"
-              variants={staggerItem}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              Conoce nuestros servicios
-            </motion.button>
+            <Link to="/servicios">
+              <motion.button 
+                className="bg-[#0E6B96] hover:bg-[#0EB19B] text-white py-3 px-8 rounded-full font-medium transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#0EB19B] focus:ring-opacity-50"
+                variants={staggerItem}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                Conoce nuestros servicios
+              </motion.button>
+            </Link>
           </motion.div>
           
           {/* Imagen */}

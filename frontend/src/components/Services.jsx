@@ -1,6 +1,7 @@
 // Componente para la sección de servicios "¿Qué servicios ofrece la clínica?"
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   buttonAnimation,
   rotateAnimation,
@@ -188,14 +189,16 @@ const Services = () => {
           viewport={{ once: true }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <motion.button 
-            className="bg-[#0E6B96] text-white py-3 px-8 rounded-full text-sm font-medium hover:bg-[#0c5a80] transition-colors shadow-md"
-            whileHover={{ scale: 1.05, boxShadow: "0 15px 25px -5px rgba(14, 107, 150, 0.2)" }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            Ver todos nuestros servicios
-          </motion.button>
+          <Link to="/servicios">
+            <motion.button 
+              className="bg-[#0E6B96] text-white py-3 px-8 rounded-full text-sm font-medium hover:bg-[#0c5a80] transition-colors shadow-md"
+              whileHover={{ scale: 1.05, boxShadow: "0 15px 25px -5px rgba(14, 107, 150, 0.2)" }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            >
+              Ver todos nuestros servicios
+            </motion.button>
+          </Link>
         </motion.div>
       </div>
     </motion.section>

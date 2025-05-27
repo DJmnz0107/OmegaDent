@@ -274,7 +274,7 @@ const AboutPage = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <motion.img 
-                    src="/images/icon-experience.svg" 
+                    src="/images/icon-code.svg" 
                     alt="Experiencia Intuitiva" 
                     className="w-8 h-8" 
                     initial={{ scale: 0 }}
